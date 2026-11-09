@@ -65,6 +65,30 @@ img {
   outline: 2px solid #fff3;
 }
 
+.back {
+  font: inherit;
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.back span {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.danger-zone {
+  margin-top: 24px;
+  text-align: center;
+}
+
 .sync {
   display: flex;
   align-items: center;

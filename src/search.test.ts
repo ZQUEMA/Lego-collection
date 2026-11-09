@@ -62,6 +62,8 @@ describe('filterOwned', () => {
   it('trouve par nom anglais', () => expect(nums({ text: 'tie bomber' })).toEqual(['75347-1']))
   it('filtre par année', () => expect(nums({ year: 2023 })).toHaveLength(2))
   it('filtre par personnage', () => expect(nums({ character: 'vader' })).toEqual(['75347-1']))
+  it('trouve en français un set sans nom français saisi', () => expect(nums({ text: 'bombardier' })).toEqual(['75347-1']))
+  it('filtre par personnage en français', () => expect(nums({ character: 'dark vador' })).toEqual(['75347-1']))
   it('filtre par nombre de personnages', () => {
     expect(nums({ characterCount: 4 })).toEqual(['75347-1'])
     expect(nums({ characterCount: 0 })).toEqual(['75356-1'])

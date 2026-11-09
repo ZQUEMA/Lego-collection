@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { hasBricksetProxy } from '../brickset'
+import { hasRelay } from '../relay'
 import { exportSnapshot } from '../db'
 import { hasGoogleClientId } from '../google'
 import { login, logout, syncNow, useSync } from '../sync'
@@ -67,7 +67,7 @@ export function AccountPage() {
       <button className="btn" onClick={() => void download()}>
         Exporter ma collection (JSON)
       </button>
-      <p className="muted small">Brickset (collection et mois de sortie automatiques) : {hasBricksetProxy() ? 'branché' : 'pas encore branché'}.</p>
+      <p className="muted small">Relais (nom français officiel, collection, mois de sortie) : {hasRelay() ? 'branché' : 'pas encore branché'}.</p>
     </section>
   )
 }

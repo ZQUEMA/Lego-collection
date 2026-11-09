@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { englishToFrench } from '../i18n'
 import { addCopyOf } from '../addSet'
-import { SetCard } from '../components/SetCard'
+import { SetCard, ownedBadge } from '../components/SetCard'
 import { useOwnedCounts } from '../hooks'
 import { hasRebrickableKey, searchSets, type SetSummary } from '../rebrickable'
 import { go } from '../router'
@@ -31,7 +32,7 @@ export function AddSet({ initialQuery }: { initialQuery?: string }) {
 
   async function pick(s: SetSummary) {
     const n = counts.get(s.setNum)
-    if (n && !confirm(`Tu as déjà ${n} exemplaire${n > 1 ? 's' : ''} de ${s.name}. En ajouter un autre ?`)) return
+    if (n && !confirm(`Tu as déjà ${n} exemplaire${n > 1 ? 's' : ''} de ${englishToFrench(s.name)}. En ajouter un autre ?`)) return
     setBusy(s.setNum)
     setError(null)
     try {
@@ -74,11 +75,11 @@ export function AddSet({ initialQuery }: { initialQuery?: string }) {
           <SetCard
             key={s.setNum}
             setNum={s.setNum}
-            name={s.name}
+            name={englishToFrench(s.name)}
             year={s.year}
             imageUrl={s.imageUrl}
             subtitle={busy === s.setNum ? 'Ajout…' : `${s.numParts} pièces`}
-            count={counts.get(s.setNum)}
+            badge={ownedBadge(counts.get(s.setNum))}
             onClick={() => void pick(s)}
           />
         ))}

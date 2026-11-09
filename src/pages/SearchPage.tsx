@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
+import { englishToFrench, minifigNameFr } from '../i18n'
 import { addCopyOf } from '../addSet'
-import { SetCard } from '../components/SetCard'
+import { SetCard, copiesBadge, ownedBadge } from '../components/SetCard'
 import { useOwned, useOwnedCounts } from '../hooks'
 import { searchMinifigs, searchSets, setsWithMinifig, type MinifigHit, type SetSummary } from '../rebrickable'
 import { go } from '../router'
@@ -60,7 +61,7 @@ function MineResults({ filter }: { filter: OwnedFilter }) {
             year={set.year}
             imageUrl={set.imageUrl}
             subtitle={`${characterNames(set).length} perso(s)${set.episode ? ` · ${set.episode}` : ''}`}
-            count={copies.length}
+            badge={copiesBadge(copies.length)}
           />
         ))}
       </div>
@@ -113,7 +114,7 @@ function CatalogResults({ text, year, character }: { text: string; year?: number
   const add = (s: SetSummary) =>
     guard(async () => {
       const n = counts.get(s.setNum)
-      if (n && !confirm(`Tu as déjà ${n} exemplaire(s) de ${s.name}. En ajouter un autre ?`)) return
+      if (n && !confirm(`Tu as déjà ${n} exemplaire(s) de ${englishToFrench(s.name)}. En ajouter un autre ?`)) return
       await addCopyOf(s.setNum)
       go({ name: 'set', setNum: s.setNum })
     })
@@ -128,7 +129,7 @@ function CatalogResults({ text, year, character }: { text: string; year?: number
           Chercher par personnage
         </button>
       </div>
-      <p className="muted small">Catalogue Rebrickable : noms des sets et personnages en anglais (ex. « Darth Vader »).</p>
+      <p className="muted small">Recherche en français ou en anglais (ex. « Dark Vador », « Faucon Millenium »).</p>
       {error ? <p className="error">{error}</p> : null}
       {busy ? <p className="muted">Recherche…</p> : null}
       {figs ? (
@@ -139,14 +140,14 @@ function CatalogResults({ text, year, character }: { text: string; year?: number
               <li key={f.figNum}>
                 <button type="button" onClick={() => void pickFig(f)}>
                   {f.imageUrl ? <img src={f.imageUrl} alt="" loading="lazy" /> : <span className="noimg">?</span>}
-                  <span className="pname">{f.name}</span>
+                  <span className="pname">{minifigNameFr(f.name).main}<small>{minifigNameFr(f.name).detail}</small></span>
                 </button>
               </li>
             ))}
           </ul>
         </>
       ) : null}
-      {fig ? <p className="muted small">Sets contenant : {fig.name} (le filtre par année ne s’applique pas ici)</p> : null}
+      {fig ? <p className="muted small">Sets contenant : {minifigNameFr(fig.name).main} (le filtre par année ne s’applique pas ici)</p> : null}
       {results ? (
         <>
           <p className="muted small">{results.length} résultat(s)</p>
@@ -155,11 +156,11 @@ function CatalogResults({ text, year, character }: { text: string; year?: number
               <SetCard
                 key={s.setNum}
                 setNum={s.setNum}
-                name={s.name}
+                name={englishToFrench(s.name)}
                 year={s.year}
                 imageUrl={s.imageUrl}
                 subtitle={counts.get(s.setNum) ? 'Dans ma collection' : 'Je ne l’ai pas'}
-                count={counts.get(s.setNum)}
+                badge={ownedBadge(counts.get(s.setNum))}
                 onClick={counts.get(s.setNum) ? () => go({ name: 'set', setNum: s.setNum }) : undefined}
                 action={
                   <button className="btn small" onClick={() => void add(s)}>

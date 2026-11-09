@@ -44,6 +44,18 @@ export function go(route: Route) {
   location.hash = href(route)
 }
 
+let inAppNavigations = 0
+window.addEventListener('hashchange', () => inAppNavigations++)
+
+export function goBack() {
+  if (inAppNavigations > 0) history.back()
+  else location.replace(href({ name: 'gallery' }))
+}
+
+export function replaceWith(route: Route) {
+  location.replace(href(route))
+}
+
 const subscribe = (l: () => void) => {
   window.addEventListener('hashchange', l)
   return () => window.removeEventListener('hashchange', l)

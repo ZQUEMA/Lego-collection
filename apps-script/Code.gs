@@ -4,8 +4,28 @@ function doGet(e) {
   var cache = CacheService.getScriptCache()
   var cached = cache.get(setNumber)
   if (cached) return ContentService.createTextOutput(cached).setMimeType(ContentService.MimeType.JSON)
+  var out = { status: 'success', setNumber: setNumber, nameFr: legoNameFr(setNumber), brickset: brickset(setNumber) }
+  var text = JSON.stringify(out)
+  cache.put(setNumber, text, 21600)
+  return ContentService.createTextOutput(text).setMimeType(ContentService.MimeType.JSON)
+}
+
+function legoNameFr(setNumber) {
+  var base = setNumber.replace(/-\d+$/, '')
+  var res = UrlFetchApp.fetch('https://www.lego.com/fr-fr/service/building-instructions/' + base, { muteHttpExceptions: true })
+  if (res.getResponseCode() !== 200) return null
+  var re = /"name":"([^"]+)"/g
+  var html = res.getContentText()
+  var m
+  while ((m = re.exec(html))) {
+    if (m[1] !== 'The LEGO Group') return m[1].replace(/[™®]/g, '').trim()
+  }
+  return null
+}
+
+function brickset(setNumber) {
   var apiKey = PropertiesService.getScriptProperties().getProperty('BRICKSET_API_KEY')
-  if (!apiKey) return json({ status: 'error', message: 'BRICKSET_API_KEY manquant dans les propriétés du script' })
+  if (!apiKey) return null
   var url =
     'https://brickset.com/api/v3.asmx/getSets?apiKey=' +
     encodeURIComponent(apiKey) +
@@ -13,24 +33,9 @@ function doGet(e) {
     encodeURIComponent(JSON.stringify({ setNumber: setNumber }))
   var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true })
   var body = JSON.parse(res.getContentText())
-  var out = {
-    status: body.status,
-    message: body.message,
-    sets: (body.sets || []).map(function (s) {
-      return {
-        number: s.number + '-' + s.numberVariant,
-        name: s.name,
-        theme: s.theme,
-        subtheme: s.subtheme,
-        year: s.year,
-        launchDate: s.launchDate,
-        minifigs: s.minifigs
-      }
-    })
-  }
-  var text = JSON.stringify(out)
-  if (out.status === 'success') cache.put(setNumber, text, 21600)
-  return ContentService.createTextOutput(text).setMimeType(ContentService.MimeType.JSON)
+  var s = (body.sets || [])[0]
+  if (!s) return null
+  return { theme: s.theme, subtheme: s.subtheme, launchDate: s.launchDate, minifigs: s.minifigs }
 }
 
 function json(obj) {

@@ -1,4 +1,5 @@
 import type { Minifig, SetRecord } from './types'
+import { colorFr, frenchQueryToEnglish } from './i18n'
 
 const BASE = 'https://rebrickable.com/api/v3/lego'
 const KEY = import.meta.env.VITE_REBRICKABLE_API_KEY as string | undefined
@@ -108,7 +109,7 @@ export async function searchSets(query: string, opts: { year?: number; page?: nu
     }
   }
   const page = await get<Page<RbSet>>('/sets/', {
-    search: q,
+    search: frenchQueryToEnglish(q),
     min_year: opts.year,
     max_year: opts.year,
     page: opts.page,
@@ -187,7 +188,7 @@ export async function fetchSetParts(setNum: string): Promise<PartHit[]> {
   return parts.map((p) => ({
     partNum: p.part.part_num,
     name: p.part.name,
-    colorName: p.color.name,
+    colorName: colorFr(p.color.name),
     imageUrl: p.part.part_img_url ?? undefined,
     quantity: p.quantity,
     isSpare: p.is_spare
@@ -201,7 +202,7 @@ interface RbPart {
 }
 
 export async function searchParts(query: string): Promise<PartHit[]> {
-  const page = await get<Page<RbPart>>('/parts/', { search: query, page_size: 30 })
+  const page = await get<Page<RbPart>>('/parts/', { search: frenchQueryToEnglish(query), page_size: 30 })
   return page.results.map((p) => ({ partNum: p.part_num, name: p.name, imageUrl: p.part_img_url ?? undefined }))
 }
 
@@ -212,7 +213,7 @@ interface RbMinifig {
 }
 
 export async function searchMinifigs(query: string): Promise<MinifigHit[]> {
-  const page = await get<Page<RbMinifig>>('/minifigs/', { search: query, page_size: 40 })
+  const page = await get<Page<RbMinifig>>('/minifigs/', { search: frenchQueryToEnglish(query), page_size: 40 })
   return page.results.map((m) => ({ figNum: m.set_num, name: m.name, imageUrl: m.set_img_url ?? undefined }))
 }
 

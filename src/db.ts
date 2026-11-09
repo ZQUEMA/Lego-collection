@@ -43,21 +43,21 @@ export function onLocalChange(fn: () => void): () => void {
   return () => changeListeners.delete(fn)
 }
 
-const notify = () => changeListeners.forEach((fn) => fn())
+export const notifyLocalChange = () => changeListeners.forEach((fn) => fn())
 
 export async function saveSet(set: SetRecord) {
   await db.sets.put({ ...set, updatedAt: now() })
-  notify()
+  notifyLocalChange()
 }
 
 export async function saveCopy(copy: CopyRecord) {
   await db.copies.put({ ...copy, updatedAt: now() })
-  notify()
+  notifyLocalChange()
 }
 
 export async function deleteCopy(copy: CopyRecord) {
   await db.copies.put({ ...copy, deleted: true, updatedAt: now() })
-  notify()
+  notifyLocalChange()
 }
 
 export async function clearLocal(target: CollectionDb = db) {

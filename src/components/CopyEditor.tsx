@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { englishToFrench } from '../i18n'
 import { deleteCopy, saveCopy } from '../db'
 import type { CopyRecord } from '../types'
 import { MissingPartsDialog } from './MissingPartsDialog'
@@ -24,10 +25,10 @@ export function CopyEditor({ copy, index, setNum }: { copy: CopyRecord; index: n
         <button
           className="btn small danger"
           onClick={() => {
-            if (confirm(`Retirer l'exemplaire ${index} de ta collection ?`)) void deleteCopy(copy)
+            if (confirm(`Supprimer l'exemplaire ${index} ?`)) void deleteCopy(copy)
           }}
         >
-          Retirer
+          Supprimer l'exemplaire
         </button>
       </div>
       <div className="toggles">
@@ -70,7 +71,7 @@ export function CopyEditor({ copy, index, setNum }: { copy: CopyRecord; index: n
             <li key={p.id}>
               {p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" /> : <span className="noimg">✎</span>}
               <span className="pname">
-                {p.name}
+                {englishToFrench(p.name)}
                 <small>{[p.partNum, p.colorName].filter(Boolean).join(' · ')}</small>
               </span>
               <input

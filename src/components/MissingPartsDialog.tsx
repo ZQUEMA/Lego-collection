@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { englishToFrench, fold } from '../i18n'
 import { newId } from '../db'
 import { fetchSetParts, searchParts, type PartHit } from '../rebrickable'
 import type { MissingPart, MissingPartSource } from '../types'
@@ -9,8 +10,6 @@ interface Props {
   onClose: () => void
 }
 
-const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-
 function PartGrid({ parts, onPick }: { parts: PartHit[]; onPick: (p: PartHit) => void }) {
   return (
     <ul className="partgrid">
@@ -18,7 +17,7 @@ function PartGrid({ parts, onPick }: { parts: PartHit[]; onPick: (p: PartHit) =>
         <li key={`${p.partNum}-${p.colorName}-${i}`}>
           <button type="button" onClick={() => onPick(p)}>
             {p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" /> : <span className="noimg">?</span>}
-            <span className="pname">{p.name}</span>
+            <span className="pname">{englishToFrench(p.name)}</span>
             <small>
               {[p.partNum, p.colorName, p.quantity ? `×${p.quantity}` : null, p.isSpare ? 'rechange' : null].filter(Boolean).join(' · ')}
             </small>
@@ -51,7 +50,7 @@ export function MissingPartsDialog({ setNum, onPick, onClose }: Props) {
   const shown = useMemo(() => {
     if (!inventory) return []
     const q = fold(filter.trim())
-    return q ? inventory.filter((p) => fold(`${p.name} ${p.partNum} ${p.colorName ?? ''}`).includes(q)) : inventory
+    return q ? inventory.filter((p) => fold(`${p.name} ${englishToFrench(p.name)} ${p.partNum} ${p.colorName ?? ''}`).includes(q)) : inventory
   }, [inventory, filter])
 
   const pick = (source: MissingPartSource, p: PartHit) =>
@@ -103,7 +102,7 @@ export function MissingPartsDialog({ setNum, onPick, onClose }: Props) {
                   .catch((err) => setError(String(err)))
               }}
             >
-              <input type="search" placeholder="Nom ou référence (en anglais)" value={catalogQ} onChange={(e) => setCatalogQ(e.target.value)} />
+              <input type="search" placeholder="Nom ou référence (ex. plaque 2 x 4, 3004)" value={catalogQ} onChange={(e) => setCatalogQ(e.target.value)} />
               <button className="btn primary">Chercher</button>
             </form>
             {catalog ? <PartGrid parts={catalog} onPick={(p) => pick('catalog', p)} /> : null}

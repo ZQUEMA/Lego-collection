@@ -1,4 +1,4 @@
-import { href, useRoute } from './router'
+import { goBack, href, useRoute } from './router'
 import { useSync } from './sync'
 import { Gallery } from './pages/Gallery'
 import { AddSet } from './pages/AddSet'
@@ -30,10 +30,16 @@ export function App() {
   return (
     <div className="app">
       <header className="top">
-        <a className="brand" href={href({ name: 'gallery' })}>
-          <img src="/icon.svg" alt="" />
-          <span>Ma collection</span>
-        </a>
+        {route.name === 'set' || route.name === 'account' ? (
+          <button type="button" className="back" onClick={goBack}>
+            <span aria-hidden>‹</span> Retour
+          </button>
+        ) : (
+          <a className="brand" href={href({ name: 'gallery' })}>
+            <img src="/icon.svg" alt="" />
+            <span>Ma collection</span>
+          </a>
+        )}
         <SyncBadge />
       </header>
       <main>

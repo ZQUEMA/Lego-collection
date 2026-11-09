@@ -1,3 +1,4 @@
+import { englishToFrench, fold } from './i18n'
 import type { CopyRecord, SetRecord } from './types'
 
 export interface OwnedFilter {
@@ -12,20 +13,13 @@ export interface OwnedEntry {
   copies: CopyRecord[]
 }
 
-const fold = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim()
-
 export function characterNames(set: SetRecord): string[] {
   if (set.charactersOverride && set.charactersOverride.length > 0) return set.charactersOverride
   return set.minifigs.flatMap((m) => Array.from({ length: m.quantity }, () => m.name))
 }
 
 export function displayName(set: SetRecord): string {
-  return set.nameFr?.trim() || set.name
+  return set.nameFr?.trim() || englishToFrench(set.name)
 }
 
 export function shortNumber(setNum: string): string {
@@ -48,7 +42,7 @@ export function ownedEntries(sets: SetRecord[], copies: CopyRecord[]): OwnedEntr
 export function matchesFilter(set: SetRecord, f: OwnedFilter): boolean {
   if (f.text) {
     const q = fold(f.text)
-    const hay = [set.setNum, shortNumber(set.setNum), set.name, set.nameFr ?? '', set.collection ?? '', set.episode ?? '']
+    const hay = [set.setNum, shortNumber(set.setNum), set.name, displayName(set), set.collection ?? '', set.episode ?? '']
       .map(fold)
       .join(' ')
     if (!q.split(/\s+/).every((w) => hay.includes(w))) return false
@@ -57,7 +51,7 @@ export function matchesFilter(set: SetRecord, f: OwnedFilter): boolean {
   const chars = characterNames(set)
   if (f.character) {
     const q = fold(f.character)
-    if (!chars.some((c) => fold(c).includes(q))) return false
+    if (!chars.some((c) => fold(c).includes(q) || fold(englishToFrench(c)).includes(q))) return false
   }
   if (f.characterCount !== undefined && chars.length !== f.characterCount) return false
   return true

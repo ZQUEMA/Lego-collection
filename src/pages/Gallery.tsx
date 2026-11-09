@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { SetCard } from '../components/SetCard'
+import { SetCard, copiesBadge } from '../components/SetCard'
 import { useOwned } from '../hooks'
 import { href } from '../router'
 import { displayName, filterOwned, sortEntries } from '../search'
@@ -24,7 +24,7 @@ export function Gallery() {
       <div className="toolbar">
         <input type="search" placeholder="Filtrer ma galerie…" value={text} onChange={(e) => setText(e.target.value)} />
         <span className="muted">
-          {owned.length} sets · {copies} exemplaires
+          {owned.length} set{owned.length > 1 ? "s" : ""} · {copies} exemplaire{copies > 1 ? "s" : ""}
         </span>
       </div>
       <div className="grid">
@@ -36,7 +36,7 @@ export function Gallery() {
             year={set.year}
             imageUrl={set.imageUrl}
             subtitle={set.collection ?? set.themeName}
-            count={copies.length}
+            badge={copiesBadge(copies.length)}
           />
         ))}
       </div>

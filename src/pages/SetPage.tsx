@@ -1,6 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { enrichFromSources } from '../addSet'
+import { deleteSetFromCollection, enrichFromSources } from '../addSet'
+import { minifigNameFr } from '../i18n'
+import { replaceWith } from '../router'
 import { CopyEditor } from '../components/CopyEditor'
 import { COLLECTIONS, EPISODES, legoInstructionsUrl } from '../constants'
 import { blankCopy, db, saveCopy, saveSet } from '../db'
@@ -17,7 +19,7 @@ export function SetPage({ setNum }: { setNum: string }) {
   const [refreshing, setRefreshing] = useState(false)
 
   if (set === undefined || copies === undefined) return null
-  if (!set) return <p className="muted">Set introuvable dans ta collection.</p>
+  if (!set || set.deleted) return <p className="muted">Ce set n'est pas dans ta collection.</p>
 
   const patch = (p: Partial<SetRecord>) => saveSet({ ...set, ...p })
   const chars = characterNames(set)
@@ -62,7 +64,7 @@ export function SetPage({ setNum }: { setNum: string }) {
         <h2>Le set</h2>
         <label>
           Nom en français
-          <input value={set.nameFr ?? ''} placeholder={set.name} onChange={(e) => void patch({ nameFr: e.target.value })} />
+          <input value={set.nameFr ?? ''} placeholder={displayName(set)} onChange={(e) => void patch({ nameFr: e.target.value })} />
         </label>
         <label>
           Collection
@@ -98,7 +100,7 @@ export function SetPage({ setNum }: { setNum: string }) {
             <>
               <textarea
                 rows={Math.max(4, chars.length + 1)}
-                defaultValue={chars.join('\n')}
+                defaultValue={(set.charactersOverride ?? chars.map((c) => minifigNameFr(c).main)).join('\n')}
                 onBlur={(e) => {
                   const list = e.target.value
                     .split('\n')
@@ -120,9 +122,10 @@ export function SetPage({ setNum }: { setNum: string }) {
               {set.minifigs.map((m) => (
                 <li key={m.figNum}>
                   {m.imageUrl ? <img src={m.imageUrl} alt="" loading="lazy" /> : null}
-                  <span>
+                  <span className="pname">
                     {m.quantity > 1 ? `${m.quantity} × ` : ''}
-                    {m.name}
+                    {minifigNameFr(m.name).main}
+                    {minifigNameFr(m.name).detail ? <small>{minifigNameFr(m.name).detail}</small> : null}
                   </span>
                 </li>
               ))}
@@ -143,6 +146,18 @@ export function SetPage({ setNum }: { setNum: string }) {
         <CopyEditor key={c.id} copy={c} index={i + 1} setNum={set.setNum} />
       ))}
       {copies.length === 0 ? <p className="muted">Tu ne possèdes plus ce set.</p> : null}
+      <div className="danger-zone">
+        <button
+          className="btn danger"
+          onClick={() => {
+            const n = copies!.length
+            if (!confirm(`Supprimer « ${displayName(set)} » de ta collection${n > 1 ? ` avec ses ${n} exemplaires` : ''} ?`)) return
+            void deleteSetFromCollection(set).then(() => replaceWith({ name: 'gallery' }))
+          }}
+        >
+          Supprimer ce set de ma collection
+        </button>
+      </div>
     </section>
   )
 }

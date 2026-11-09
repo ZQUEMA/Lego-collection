@@ -7,17 +7,17 @@ interface Props {
   year?: number
   imageUrl?: string
   subtitle?: string
-  count?: number
+  badge?: string
   onClick?: () => void
   action?: React.ReactNode
 }
 
-export function SetCard({ setNum, name, year, imageUrl, subtitle, count, onClick, action }: Props) {
+export function SetCard({ setNum, name, year, imageUrl, subtitle, badge, onClick, action }: Props) {
   const body = (
     <>
       <div className="thumb">
         {imageUrl ? <img src={imageUrl} alt="" loading="lazy" /> : <div className="noimg">?</div>}
-        {count && count > 0 ? <span className="count">{count > 1 ? `×${count}` : '✓'}</span> : null}
+        {badge ? <span className="count">{badge}</span> : null}
       </div>
       <div className="meta">
         <div className="num">
@@ -42,4 +42,13 @@ export function SetCard({ setNum, name, year, imageUrl, subtitle, count, onClick
       {action}
     </div>
   )
+}
+
+export function copiesBadge(count: number): string | undefined {
+  return count > 1 ? `×${count}` : undefined
+}
+
+export function ownedBadge(count?: number): string | undefined {
+  if (!count) return undefined
+  return count > 1 ? `Possédé ×${count}` : 'Possédé'
 }
