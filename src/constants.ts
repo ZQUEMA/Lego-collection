@@ -24,6 +24,25 @@ export const EPISODES = [
   'Skeleton Crew'
 ]
 
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
+
+export function classifySubtheme(subtheme?: string): { collection?: string; episode?: string } {
+  const s = subtheme?.trim()
+  if (!s) return {}
+  const ep = /^episode\s+([ivx]+)$/i.exec(s)
+  if (ep) {
+    const i = ROMAN.indexOf(ep[1].toUpperCase())
+    return i >= 0 ? { episode: EPISODES[i] } : { episode: s }
+  }
+  const named = EPISODES.find((e) => e.toLowerCase() === s.toLowerCase())
+  if (named) return { episode: named }
+  if (/^(original|prequel|sequel) trilogy$/i.test(s)) {
+    const map: Record<string, string> = { original: 'Trilogie originale', prequel: 'Prélogie', sequel: 'Postlogie' }
+    return { episode: map[s.split(' ')[0].toLowerCase()] }
+  }
+  return { collection: s }
+}
+
 export const COLLECTIONS = ['Ultimate Collector Series', 'Starship Collection', 'Helmet Collection', 'Diorama Collection']
 
 export function legoInstructionsUrl(setNum: string): string {

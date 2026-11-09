@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { clearLocal, exportSnapshot, onLocalChange, replaceWithSnapshot } from './db'
 import {
   AuthExpiredError,
+  DriveNotGrantedError,
   downloadSnapshot,
   hasGoogleClientId,
   sessionValid,
@@ -53,8 +54,8 @@ async function ensureSession(): Promise<GoogleSession | null> {
     const s = await signIn({ silent: true, hint: state.session.email })
     set({ session: s })
     return s
-  } catch {
-    set({ phase: 'needs-login' })
+  } catch (e) {
+    set({ phase: 'needs-login', error: e instanceof DriveNotGrantedError ? e.message : undefined })
     return null
   }
 }
@@ -95,6 +96,10 @@ async function syncOnce() {
   } catch (e) {
     if (e instanceof AuthExpiredError) {
       set({ phase: 'needs-login', session: { ...session, expiresAt: 0 } })
+      return
+    }
+    if (e instanceof DriveNotGrantedError) {
+      set({ phase: 'needs-login', error: e.message, session: { ...session, expiresAt: 0 } })
       return
     }
     set({ phase: 'error', error: e instanceof Error ? e.message : String(e) })

@@ -1,4 +1,5 @@
 import { blankCopy, db, notifyLocalChange, now, saveCopy, saveSet } from './db'
+import { classifySubtheme } from './constants'
 import { fetchRelayInfo } from './relay'
 import { fetchSetRecord } from './rebrickable'
 import type { SetRecord } from './types'
@@ -9,12 +10,13 @@ export async function enrichFromSources(setNum: string, existing?: SetRecord): P
   const fresh = await fetchSetRecord(setNum)
   const relay = await fetchRelayInfo(setNum).catch(() => null)
   const officialFr = relay?.nameFr && !sameName(relay.nameFr, fresh.name) ? relay.nameFr : undefined
+  const fromSubtheme = classifySubtheme(relay?.subtheme)
   return {
     ...fresh,
-    collection: existing?.collection || relay?.subtheme || fresh.collection,
+    collection: existing?.collection || fromSubtheme.collection || fresh.collection,
     launchDate: existing?.launchDate || relay?.launchDate,
     nameFr: existing?.nameFr || officialFr,
-    episode: existing?.episode,
+    episode: existing?.episode || fromSubtheme.episode,
     charactersOverride: existing?.charactersOverride
   }
 }

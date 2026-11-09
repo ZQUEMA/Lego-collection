@@ -1,8 +1,9 @@
 import type { Minifig, SetRecord } from './types'
 import { colorFr, frenchQueryToEnglish } from './i18n'
 
+import { RELAY_URL } from './relay'
+
 const BASE = 'https://rebrickable.com/api/v3/lego'
-const KEY = import.meta.env.VITE_REBRICKABLE_API_KEY as string | undefined
 
 export interface SetSummary {
   setNum: string
@@ -34,25 +35,29 @@ interface Theme {
   name: string
 }
 
-export function hasRebrickableKey(): boolean {
-  return Boolean(KEY)
-}
-
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-async function get<T>(path: string, params: Record<string, string | number | undefined> = {}): Promise<T> {
-  if (!KEY) throw new Error('Clé Rebrickable absente (VITE_REBRICKABLE_API_KEY)')
+export function rebrickableRelayPath(path: string, params: Record<string, string | number | undefined> = {}): string {
   const url = new URL(path.startsWith('http') ? path : `${BASE}${path}`)
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') url.searchParams.set(k, String(v))
+  return url.pathname + url.search
+}
+
+async function get<T>(path: string, params: Record<string, string | number | undefined> = {}): Promise<T> {
+  if (!RELAY_URL) throw new Error('Relais absent (VITE_RELAY_URL) : la recherche de sets est indisponible')
+  const relay = new URL(RELAY_URL)
+  relay.searchParams.set('rb', rebrickableRelayPath(path, params))
   for (let attempt = 0; ; attempt++) {
-    const res = await fetch(url, { headers: { Authorization: `key ${KEY}` } })
-    if (res.status === 429 && attempt < 3) {
+    const res = await fetch(relay)
+    if (!res.ok) throw new Error(`Relais ${res.status}`)
+    const { rbStatus, body } = (await res.json()) as { rbStatus: number; body: unknown }
+    if (rbStatus === 429 && attempt < 3) {
       await sleep(1100 * (attempt + 1))
       continue
     }
-    if (res.status === 404) throw new NotFoundError(path)
-    if (!res.ok) throw new Error(`Rebrickable ${res.status} sur ${path}`)
-    return res.json() as Promise<T>
+    if (rbStatus === 404) throw new NotFoundError(path)
+    if (rbStatus !== 200) throw new Error(`Rebrickable ${rbStatus} : ${(body as { detail?: string })?.detail ?? path}`)
+    return body as T
   }
 }
 

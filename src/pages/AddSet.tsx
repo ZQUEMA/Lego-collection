@@ -3,7 +3,8 @@ import { englishToFrench } from '../i18n'
 import { addCopyOf } from '../addSet'
 import { SetCard, ownedBadge } from '../components/SetCard'
 import { useOwnedCounts } from '../hooks'
-import { hasRebrickableKey, searchSets, type SetSummary } from '../rebrickable'
+import { searchSets, type SetSummary } from '../rebrickable'
+import { hasRelay } from '../relay'
 import { go } from '../router'
 
 export function AddSet({ initialQuery }: { initialQuery?: string }) {
@@ -44,7 +45,7 @@ export function AddSet({ initialQuery }: { initialQuery?: string }) {
     }
   }
 
-  if (!hasRebrickableKey()) return <p className="error">Clé Rebrickable absente : renseigne VITE_REBRICKABLE_API_KEY.</p>
+  if (!hasRelay()) return <p className="error">Relais absent : renseigne VITE_RELAY_URL.</p>
 
   return (
     <section>

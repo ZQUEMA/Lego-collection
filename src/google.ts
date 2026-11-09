@@ -1,13 +1,22 @@
 import type { CollectionSnapshot } from './types'
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
-const SCOPES = 'https://www.googleapis.com/auth/drive.appdata openid email profile'
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata'
+const SCOPES = `${DRIVE_SCOPE} openid email profile`
+
+export const DRIVE_NOT_GRANTED =
+  'Google ne donne pas accès au Drive : sur l’écran de connexion, coche la case « Voir, créer et supprimer ses propres données de configuration dans votre Google Drive », puis reconnecte-toi.'
+
+export function hasDriveScope(scope?: string): boolean {
+  return (scope ?? '').split(/\s+/).includes(DRIVE_SCOPE)
+}
 const FILE_NAME = 'collection.json'
 const TOKEN_KEY = 'google-token-v1'
 
 interface TokenResponse {
   access_token?: string
   expires_in?: number
+  scope?: string
   error?: string
   error_description?: string
 }
@@ -78,9 +87,13 @@ export async function signIn(opts: { silent?: boolean; hint?: string } = {}): Pr
       callback: (r) => (r.error ? reject(new Error(r.error_description || r.error)) : resolve(r)),
       error_callback: (e) => reject(new Error(e.message || e.type))
     })
-    client.requestAccessToken({ prompt: opts.silent ? '' : 'select_account', login_hint: opts.hint })
+    client.requestAccessToken({ prompt: opts.silent ? '' : 'consent', login_hint: opts.hint })
   })
   const accessToken = token.access_token!
+  if (!hasDriveScope(token.scope)) {
+    google.accounts.oauth2.revoke(accessToken)
+    throw new DriveNotGrantedError()
+  }
   const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${accessToken}` }
   }).then((r) => r.json() as Promise<{ email: string; name?: string; picture?: string }>)
@@ -106,13 +119,21 @@ async function drive(session: GoogleSession, url: string, init: RequestInit = {}
     headers: { ...(init.headers ?? {}), Authorization: `Bearer ${session.accessToken}` }
   })
   if (res.status === 401) throw new AuthExpiredError()
-  if (!res.ok) throw new Error(`Google Drive ${res.status}: ${await res.text()}`)
+  const body = res.ok ? '' : await res.text()
+  if (res.status === 403 && body.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT')) throw new DriveNotGrantedError()
+  if (!res.ok) throw new Error(`Google Drive ${res.status} : ${body}`)
   return res
 }
 
 export class AuthExpiredError extends Error {
   constructor() {
     super('Session Google expirée')
+  }
+}
+
+export class DriveNotGrantedError extends Error {
+  constructor() {
+    super(DRIVE_NOT_GRANTED)
   }
 }
 

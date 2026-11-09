@@ -1,4 +1,4 @@
-const RELAY = import.meta.env.VITE_RELAY_URL as string | undefined
+export const RELAY_URL = import.meta.env.VITE_RELAY_URL as string | undefined
 
 export interface RelayInfo {
   nameFr?: string
@@ -7,7 +7,7 @@ export interface RelayInfo {
 }
 
 export function hasRelay(): boolean {
-  return Boolean(RELAY)
+  return Boolean(RELAY_URL)
 }
 
 interface RelayBody {
@@ -17,8 +17,8 @@ interface RelayBody {
 }
 
 export async function fetchRelayInfo(setNum: string): Promise<RelayInfo | null> {
-  if (!RELAY) return null
-  const url = new URL(RELAY)
+  if (!RELAY_URL) return null
+  const url = new URL(RELAY_URL)
   url.searchParams.set('setNumber', setNum)
   const res = await fetch(url)
   if (!res.ok) return null
