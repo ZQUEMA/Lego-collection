@@ -36,7 +36,7 @@ export function App() {
           </button>
         ) : (
           <a className="brand" href={href({ name: 'gallery' })}>
-            <img src="/icon.svg" alt="" />
+            <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
             <span>Ma collection</span>
           </a>
         )}

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: process.env.BASE_PATH ?? '/',
   plugins: [
     react(),
     VitePWA({
@@ -12,7 +13,8 @@ export default defineConfig({
         name: 'Ma collection LEGO',
         short_name: 'Collection',
         lang: 'fr',
-        start_url: '/',
+        start_url: '.',
+        scope: '.',
         display: 'standalone',
         background_color: '#f4f1ea',
         theme_color: '#d01012',
@@ -23,5 +25,4 @@ export default defineConfig({
     })
   ],
   server: { port: 5173, strictPort: true }
-
 })
